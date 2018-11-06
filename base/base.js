@@ -2,8 +2,8 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 
-
 app.use(bodyParser.urlencoded({extended: false}))
+
 
 // 对访问主页的响应
 app.get('/', function (req, res) {
