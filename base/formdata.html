@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>文件读取</title>
+</head>
+<body>
+  <h1>Form Data</h1>
+
+  <form action="post" enctype="multipart/form-data">
+    <input type="file" class="file">
+  </form>
+
+  <form id="form" action="http://127.0.0.1:8081/form" method="post" enctype="application/x-www-form-urlencoded">
+    <input type="text" name="name">名字
+    <input type="password" name="psw">密码
+    <input type="submit" value="提交">
+  </form>
+
+  <!-- multipart/form-data -->
+  <form id="formdata" action="http://127.0.0.1:8081/formdata" method="post" enctype="multipart/form-data">
+    <input type="text" name="name">名字
+    <input type="password" name="psw">密码
+    <input type="submit" value="提交">
+  </form>
+  <script>
+    var file = document.querySelector('.file');
+
+    file.onchange = function (ev) {
+      let _file = ev.target.files[0];
+      // console.log(_file);
+      var reader = new FileReader();
+      const formData = new FormData();
+      formData.append('name', _file.name)
+      formData.append('size', _file.size)
+      formData.append('type', _file.type)
+      formData.append('upload_time', Date.now())
+      reader.readAsDataURL(this.files[0]);
+
+      reader.onload = function (ev) {
+        const image = new Image();
+        image.src = ev.target.result;
+        image.onload = () => {
+          formData.append('width', image.width)
+          formData.append('height', image.height)
+          document.querySelector('body').appendChild(image)
+
+          const uploadUrl = Symbol('uploadUrl');
+          let url = { [uploadUrl]: 'http://127.0.0.1:8081/upload' }
+
+          formData.append("file", ev.target.result);
+          const client = new XMLHttpRequest()
+          client.open("POST", url[uploadUrl])
+          client.upload.onprogress = function (e) {
+            if (e.lengthComputable) {
+              let total = e.total;
+              let loaded = e.loaded;
+              let percentage = parseFloat(loaded / total).toFixed(2);
+            }
+          }
+          client.onreadystatechange = function () {
+            if (client.readyState == 4 && client.status == 200) {
+              let result = client.responseText;
+              console.log(JSON.parse(result));
+            }
+          }
+          client.send(formData)
+
+        }
+      }
+    }
+
+
+
+    // 获取页面已有的一个form表单
+    // express + body-parser
+    var form = document.getElementById("form");
+    form.addEventListener('submit', function (ev) {
+
+      // 用表单来初始化
+      var formData = new FormData(form);
+      // 我们可以根据name来访问表单中的字段
+      var name = formData.get("name"); // 获取名字
+      var psw = formData.get("psw"); // 获取密码
+      console.log(name, psw);
+      // 当然也可以在此基础上，添加其他数据
+      formData.append("token", "kshdfiwi3rh");
+
+      console.log(formData.get('token'));
+
+      //
+      var i = formData.entries();
+      console.log(i.next());
+
+    })
+
+
+    // 获取页面已有的一个form表单: multipart/form-data
+    // express + connect-multiparty
+    var form = document.getElementById("formdata");
+    form.addEventListener('submit', function (ev) {
+
+      // 用表单来初始化
+      var formData = new FormData(form);
+      // 我们可以根据name来访问表单中的字段
+      var name = formData.get("name"); // 获取名字
+      var psw = formData.get("psw"); // 获取密码
+      console.log(name, psw);
+      // 当然也可以在此基础上，添加其他数据
+      formData.append("token", "kshdfiwi3rh");
+
+      console.log(formData.get('token'));
+
+      //
+      var i = formData.entries();
+      console.log(i.next());
+
+    })
+
+
+
+  </script>
+</body>
+</html>
